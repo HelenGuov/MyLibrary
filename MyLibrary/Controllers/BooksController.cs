@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyLibrary.Data;
+using MyLibrary.Entities;
 using MyLibrary.Models;
 
 namespace MyLibrary.Controllers
