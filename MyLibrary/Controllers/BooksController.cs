@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLibrary.Entities;
 using MyLibrary.Models;
+using MyLibrary.Services;
 
 namespace MyLibrary.Controllers
 {
@@ -14,26 +15,27 @@ namespace MyLibrary.Controllers
     [ApiController]
     public class BooksController : ControllerBase
     {
-        private readonly MyLibraryContext _context;
+        private readonly IBookService _bookService; 
 
-        public BooksController(MyLibraryContext context)
+        public BooksController(IBookService bookService)
         {
-            _context = context;
+            _bookService = bookService;
         }
 
         // GET: api/Books
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
         {
-            return await _context.Books.ToListAsync();
+            return await _bookService.GetAllAsync();
         }
 
         // GET: api/Books/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-
+           
+            var book = await _bookService.GetAsync(id);
+            
             if (book == null)
             {
                 return NotFound();
@@ -52,22 +54,14 @@ namespace MyLibrary.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(book).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _bookService.UpdateAsync(book);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!BookExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+               return NotFound(ex.Message);
             }
 
             return NoContent();
@@ -78,8 +72,7 @@ namespace MyLibrary.Controllers
         [HttpPost]
         public async Task<ActionResult<Book>> PostBook(Book book)
         {
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
+            await _bookService.AddAsync(book);
 
             return CreatedAtAction("GetBook", new { id = book.BookId }, book);
         }
@@ -88,21 +81,8 @@ namespace MyLibrary.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-
+            await _bookService.DeleteAsync(id);
             return NoContent();
-        }
-
-        private bool BookExists(int id)
-        {
-            return _context.Books.Any(e => e.BookId == id);
         }
     }
 }

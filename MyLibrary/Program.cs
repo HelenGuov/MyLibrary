@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using MyLibrary.Contracts;
 using MyLibrary.Entities;
+using MyLibrary.Models;
+using MyLibrary.Repositories;
+using MyLibrary.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<MyLibraryContext>(opt =>
     opt.UseInMemoryDatabase("MyLibrary"));
 
+builder.Services.AddTransient<IBookService, BookService>();
+builder.Services.AddTransient<IRepository<Book>, BookRepository>(); 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
